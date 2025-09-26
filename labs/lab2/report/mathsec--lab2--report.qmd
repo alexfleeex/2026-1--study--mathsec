@@ -1,67 +1,243 @@
 ---
 ## Author
 author:
-  name: Дмитрий Сергеевич Кулябов
-  degrees: DSc
-  orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
+  name: Ермолаев Алексей Максимович
+  degrees: бакалавр
+  orcid: нет
+  email: vashermoalevalexey@gmail.com
   affiliation:
     - name: Российский университет дружбы народов
       country: Российская Федерация
-      postal-code: 117198
+      postal-code: 117228
       city: Москва
-      address: ул. Миклухо-Маклая, д. 6
+      address: ул. Пушкина, д. Колотушкина
 
 ## Title
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
+title: "Лабораторная работа №2"
+subtitle: "по дисциплине 'Математические основы защиты информации и информационной безопасности'"
 license: "CC BY"
 ---
 
 # Цель работы
 
-Здесь приводится формулировка цели лабораторной работы.
-Формулировки цели для каждой лабораторной работы приведены в методических указаниях.
+Пощнакомиться с основными шифрами перестановки:
+- маршрутным шифрованием;
+- шифрованием с помощью решеток;
+- шифром Виженера.
 
-Цель данного шаблона --- максимально упростить подготовку отчётов по лабораторным работам.
-Модифицируя данный шаблон, студенты смогут без труда подготовить отчёт по лабораторным работам, а также познакомиться с основными возможностями разметки Markdown.
+## Задание 1. Реализация маршрутного шифрования.
 
-# Задание
+Реализуем шифр маршрутного шифрования следующим образом:
 
-Здесь приводится описание задания в соответствии с рекомендациями методического пособия и выданным вариантом.
+```julia
+function route_cipher_encrypt(text::String, password::String)
 
-# Теоретическое введение
+    text_clean = uppercase(filter(isletter, text))
+    password_clean = uppercase(filter(isletter, password))
 
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
+    n = length(password_clean)
 
-Например, в [табл. @tbl-std-dir] приведено краткое описание стандартных каталогов Unix.
+    m = ceil(Int, length(text_clean) / n)
 
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
+    if length(text_clean) < m * n
+        text_clean *= "A"^(m * n - length(text_clean))
+    end
 
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl-std-dir}
+    matrix = reshape(collect(text_clean), (n, m))
 
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+    order = sortperm(collect(password_clean))
 
-# Выполнение лабораторной работы
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию ([рис. @fig-001]).
+    cipher = ""
+    for col in order
+        cipher *= String(matrix[col, :])
+    end
 
-![V Сольвеевский конгресс (1927) «Электроны и фотоны»](image/solvay.jpg){#fig-001 width=70%}
+    return cipher
+end
+
+
+function route_cipher_decrypt(cipher::String, password::String)
+    password_clean = uppercase(filter(isletter, password))
+
+    cipher = collect(cipher)
+
+    n = length(password_clean)
+    m = length(cipher) ÷ n
+
+    order = sortperm(collect(password_clean))
+    inv_order = invperm(order)
+
+    matrix = fill(' ', m, n)
+    pos = 1
+    for col in order
+        for row in 1:m
+            matrix[row, col] = cipher[pos]
+            pos += 1
+        end
+    end
+
+    text = ""
+    for row in 1:m
+        text *= String(matrix[row, :])
+    end
+
+    return text
+end
+
+# text = "нельзя недооценивать противника"
+# password = "пароль"
+
+text = ARGS[1]
+password = ARGS[2]
+
+encrypted = route_cipher_encrypt(text, password)
+println("Зашифрованный текст: ", encrypted, ".")
+
+decrypted = route_cipher_decrypt(encrypted, password)
+println("Расшифрованный текст: ", decrypted, ".")
+```
+
+Проверим результат работы:
+
+![Рис. 1. Результат работы шифра.](image/img1.png){#fig-001 width=100%}
+
+
+## Задание 2. Реализация шифрования с помощью решеток.
+
+Реализуем шифрование с помощью решеток следующим образом:
+
+```julia
+function grid_encrypt(text, key, k)
+        grid = fill(" ", 2 * k, 2 * k)
+        matrix = fill(" ", k, k)
+        index = 1
+        new_message = ""
+        text = replace(text, " " => "")
+        for i in 1:k
+                for j in 1:k
+                        grid[i, j] = string(index)
+                        matrix[i, j] = string(index)
+                        index += 1
+                end
+        end
+        for i = 1:(size(grid)[1])
+                for j = (size(grid)[1]):-1:1
+                        if grid[i, j] == " "
+                                matrix = rotr90(matrix)
+                                grid[(i+k-1):-1:i, j:-1:(j-k+1)] = matrix[k:-1:1, k:-1:1]
+                        end
+                end
+        end
+
+        index = 1
+        arr = Vector{String}()
+
+        for r in text
+                checker = false
+                for i = 1:(size(grid)[1])
+                        for j = 1:(size(grid)[2])
+                                if grid[i, j] == string(index) && checker == false
+                                        if ((string(i + 1, " ", j) ∉ arr) && (string(i - 1, " ", j) ∉ arr) && (string(i, " ", j - 1) ∉ arr) && (string(i, " ", j + 1) ∉ arr))
+                                                grid[i, j] = string(r)
+                                                push!(arr, string(i, " ", j))
+                                                checker = true
+                                        end
+                                end
+                        end
+                        if checker == true
+                                index += 1
+                                if index > k^2
+                                        index = 1
+                                        empty!(arr)
+                                end
+                                break
+                        end
+                end
+        end
+
+        for j in sort(collect(key))
+                for i = 1:2k
+                        new_message *= (grid[i, (findfirst(j, key))])
+                        if tryparse(Float64, string(last(new_message))) != nothing
+                                new_message = replace(new_message, last(new_message) => ' ')
+                        end
+                end
+        end
+        return new_message
+
+end
+
+# text = "Hello, New World!"
+# key = "keys"
+# k = 2
+
+text = ARGS[1]
+key = ARGS[2]
+k = parse(Int, ARGS[3])
+
+println("Зашифрованный текст: ", grid_encrypt(text, key, k), ".")
+```
+
+Проверим результат работы:
+
+![Рис. 2. Результат работы шифра.](image/img2.png){#fig-002 width=100%}
+
+
+## Задание 3. Реализация шифрования с помощью таблицы Виженера.
+
+Реализуем шифрование Виженера следующим образом:
+
+```julia
+function vigenere_encrypt(text, key)
+        alphabet = 'a':'z'
+        output = ""
+        key_index = 1
+
+        for i in text
+                if isletter(i)
+                        offset = findfirst(isequal(key[key_index]), alphabet) - 1
+                        index = findfirst(isequal(i), alphabet) + offset
+                        index > 26 && (index -= 26)
+                        output *= alphabet[index]
+                        key_index += 1
+                        key_index > length(key) && (key_index = 1)
+                else
+                        output *= i
+                end
+        end
+
+        return output
+end
+
+# text = "hello world"
+# key = "key"
+
+text = ARGS[1]
+key = ARGS[2]
+
+println("Зашифрованный текст: ", vigenere_encrypt(text, key), ".")
+```
+
+Проверим результат работы:
+
+![Рис. 3. Результат работы шифра.](image/img3.png){#fig-003 width=100%}
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
+В рамках выполнения данной работы мною были изучены принципы работы основных шифров перестановки:
+- маршрутным шифрованием;
+- шифрованием с помощью решеток;
+- шифром Виженера.
 
 # Список литературы{.unnumbered}
 
-::: {#refs}
-:::
+- **Менезес А., Ван Ооршот П., Ванстон С.** Справочник по прикладной криптографии / Пер. с англ. — М.: Вильямс, 2020. — 816 с. — ISBN 978-5-8459-2057-3.
+
+- **Смарт Н.** Криптография: учебное пособие для вузов / Пер. с англ. — 2-е изд. — М.: Техносфера, 2018. — 528 с. — ISBN 978-5-94836-529-7.
+
+- **Рябко Б.Я., Фионов А.Н.** Основы современной криптографии и стеганографии: учебное пособие. — М.: Горячая линия-Телеком, 2019. — 232 с. — ISBN 978-5-9912-0791-6.
+
+- **Нечаев В.И.** Математические основы криптологии: учебное пособие. — М.: Гелиос АРВ, 2021. — 280 с. — ISBN 978-5-85438-275-7.
+
+- **Бабаш А.В.**, Баранова Е.К. Криптография: учебник для вузов. — М.: КноРус, 2020. — 384 с. — ISBN 978-5-406-07821-7.
