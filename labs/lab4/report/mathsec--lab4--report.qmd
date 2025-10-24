@@ -1,67 +1,343 @@
 ---
 ## Author
 author:
-  name: Дмитрий Сергеевич Кулябов
-  degrees: DSc
-  orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
+  name: Ермолаев Алексей Максимович
+  degrees: бакалавр
+  orcid: нет
+  email: vashermoalevalexey@gmail.com
   affiliation:
     - name: Российский университет дружбы народов
       country: Российская Федерация
-      postal-code: 117198
+      postal-code: 117228
       city: Москва
-      address: ул. Миклухо-Маклая, д. 6
+      address: ул. Пушкина, д. Колотушкина
 
 ## Title
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
+title: "Лабораторная работа №4"
+subtitle: "по дисциплине 'Математические основы защиты информации и информационной безопасности'"
 license: "CC BY"
 ---
 
 # Цель работы
 
-Здесь приводится формулировка цели лабораторной работы.
-Формулировки цели для каждой лабораторной работы приведены в методических указаниях.
-
-Цель данного шаблона --- максимально упростить подготовку отчётов по лабораторным работам.
-Модифицируя данный шаблон, студенты смогут без труда подготовить отчёт по лабораторным работам, а также познакомиться с основными возможностями разметки Markdown.
+Познакомиться с алгоритмами нахождения наибольшего общего делителя.
 
 # Задание
 
-Здесь приводится описание задания в соответствии с рекомендациями методического пособия и выданным вариантом.
+Реализуем алгоритм Евклида следующим образом:
 
-# Теоретическое введение
+```julia
+function gcd_euclidian(a::Integer, b::Integer)
+	a = abs(a)
+	b = abs(b)
 
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
+	a, b = max(a, b), min(a, b)
+	
+	while b != 0
+		a, b = b, a % b
+	end
 
-Например, в [табл. @tbl-std-dir] приведено краткое описание стандартных каталогов Unix.
+	return a
 
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
+end
 
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl-std-dir}
+num1, num2 = 6, 3
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
 
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+num1, num2 = 3, 6
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
 
-# Выполнение лабораторной работы
+num1, num2 = 1, 3
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию ([рис. @fig-001]).
+num1, num2 = 3, 1
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
 
-![V Сольвеевский конгресс (1927) «Электроны и фотоны»](image/solvay.jpg){#fig-001 width=70%}
+num1, num2 = 0, 10
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
+
+num1, num2 = 10, 0
+println("НОД(", num1, ";", num2, ")=", gcd_euclidian(num1, num2))
+```
+
+Проверим результат работы:
+
+![Результат работы алгоритма.](image/img1.png){#fig-001 width=100%}
+
+Реализуем бинарный алгоритм Евклида следующим образом:
+
+```julia
+function is_even(a::Integer)
+	return a % 2 == 0
+end
+
+function binary_gcd_euclidian(a::Integer, b::Integer)
+	a = abs(a)
+	b = abs(b)
+
+	if a == 0 return b end
+	if b == 0 return a end
+	
+	g = 1
+
+	while is_even(a) && is_even(b)
+		a ÷= 2
+		b ÷= 2
+		g *= 2
+	end
+
+	u, v = a, b
+
+	while u != 0
+
+		while is_even(u)
+			u ÷= 2
+		end
+
+		while is_even(v)
+			v ÷= 2
+		end
+
+		if u >= v
+			u = u - v
+		else
+			v = v - u
+		end
+	end
+
+	return g * v
+	
+end
+
+num1, num2 = 6, 4
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+
+num1, num2 = 3, 6
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+
+num1, num2 = 1, 3
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+
+num1, num2 = 3, 1
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+
+num1, num2 = 0, 10
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+
+num1, num2 = 10, 0
+println("НОД(", num1, ";", num2, ")=", binary_gcd_euclidian(num1, num2))
+```
+
+Проверим результат работы:
+
+![Результат работы алгоритма.](image/img2.png){#fig-001 width=100%}
+
+Реализуем расширенный алгоритм Евклида следующим образом:
+
+```julia
+function extended_gcd_euclidian(a::Integer, b::Integer)
+	a, b = abs(a), abs(b)
+	if a == 0 return (b, 0, 1) end
+	if b == 0 return (a, 1, 0) end
+
+		
+	if a < b
+		is_permuted = true
+		a, b = b, a
+	else
+		is_permuted = false
+	end
+
+	r_prev, r_curr = a, b
+	x_prev, x_curr = 1, 0
+	y_prev, y_curr = 0, 1
+
+	while r_curr != 0
+		q = r_prev ÷ r_curr
+		r_next = r_prev % r_curr
+
+		x_next = x_prev - q * x_curr
+		y_next = y_prev - q * y_curr
+
+		r_prev, r_curr = r_curr, r_next
+		x_prev, x_curr = x_curr, x_next
+		y_prev, y_curr = y_curr, y_next
+		
+	end	
+
+	if is_permuted
+		return (r_prev, y_prev, x_prev)
+	else
+		return (r_prev, x_prev, y_prev)
+	end
+end
+
+num1, num2 = 6, 4
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 4, 6
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 1, 3
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 3, 1
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 0, 10
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 10, 0
+g, x, y = extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+```
+
+Проверим результат работы:
+
+![Результат работы алгоритма.](image/img3.png){#fig-001 width=100%}
+
+Реализуем расширенный бинарный алгоритм Евклида следующим образом:
+
+```julia
+function is_even(a::Integer)
+	return a % 2 == 0
+end
+
+function binary_extended_gcd_euclidian(a::Integer, b::Integer)
+
+    a, b = abs(a), abs(b)
+	if a == 0 return (b, 0, 1) end
+	if b == 0 return (a, 1, 0) end
+
+
+    a_orig, b_orig = a, b
+    
+    g = 1
+
+    while is_even(a) && is_even(b)
+        a ÷= 2
+        b ÷= 2
+        g *= 2
+    end
+    
+    u, v = a, b
+    A, B, C, D = 1, 0, 0, 1
+    
+    while u != 0
+        
+        while is_even(u)
+            u ÷= 2
+            
+            if is_even(A) && is_even(B)
+                A ÷= 2
+                B ÷= 2
+            else
+                A = (A + b_orig) ÷ 2
+                B = (B - a_orig) ÷ 2
+            end
+        end
+        
+        while is_even(v)
+            v ÷= 2
+            
+            if is_even(C) && is_even(D)
+                C ÷= 2
+                D ÷= 2
+            else
+                C = (C + b_orig) ÷ 2
+                D = (D - a_orig) ÷ 2
+            end
+        end
+        
+        if u >= v
+            u = u - v
+            A = A - C
+            B = B - D
+        else
+            v = v - u
+            C = C - A
+            D = D - B
+        end
+    end
+    
+   
+    d = g * v
+    x, y = C, D
+
+    return (d, x, y)
+    
+end
+
+num1, num2 = 6, 4
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 4, 6
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 1, 3
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 3, 1
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 0, 10
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+
+num1, num2 = 10, 0
+g, x, y = binary_extended_gcd_euclidian(num1, num2)
+println("НОД(", num1, ";", num2, ")=", g)
+# println(x, "*", num1, "+", y, "*", num2, "=", g)
+println()
+```
+
+Проверим результат работы:
+
+![Результат работы алгоритма.](image/img4.png){#fig-001 width=100%}
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
+В рамках выполнения работы я познакомился с алгоритмами нахождения наибольшего общего делителя.
 
 # Список литературы{.unnumbered}
 
-::: {#refs}
-:::
+- **Менезес А., Ван Ооршот П., Ванстон С.** Справочник по прикладной криптографии / Пер. с англ. — М.: Вильямс, 2020. — 816 с. — ISBN 978-5-8459-2057-3.
+
+- **Смарт Н.** Криптография: учебное пособие для вузов / Пер. с англ. — 2-е изд. — М.: Техносфера, 2018. — 528 с. — ISBN 978-5-94836-529-7.
+
+- **Рябко Б.Я., Фионов А.Н.** Основы современной криптографии и стеганографии: учебное пособие. — М.: Горячая линия-Телеком, 2019. — 232 с. — ISBN 978-5-9912-0791-6.
+
+- **Нечаев В.И.** Математические основы криптологии: учебное пособие. — М.: Гелиос АРВ, 2021. — 280 с. — ISBN 978-5-85438-275-7.
+
+- **Бабаш А.В.**, Баранова Е.К. Криптография: учебник для вузов. — М.: КноРус, 2020. — 384 с. — ISBN 978-5-406-07821-7.
